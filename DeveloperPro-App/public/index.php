@@ -35,6 +35,7 @@
     require '..\app\Service\Helpers.php';
     require '..\app\Service\JwtAuth.php';
     require '..\app\Service\Connections.php';
+    require '..\app\Service\EmailTemplate.php';
     
     try {
         $app->run(false);

@@ -8,6 +8,7 @@ class ComposerStaticInitff0a7fc48174f709c2f06c28783e7c9e
 {
     public static $files = array (
         '253c157292f75eb38082b5acb06f3f01' => __DIR__ . '/..' . '/nikic/fast-route/src/functions.php',
+        'c65d09b6820da036953a371c8c73a9b1' => __DIR__ . '/..' . '/facebook/graph-sdk/src/Facebook/polyfills.php',
         'e40631d46120a9c38ea139981f8dab26' => __DIR__ . '/..' . '/ircmaxell/password-compat/lib/password.php',
         '2c102faa651ef8ea5874edb585946bce' => __DIR__ . '/..' . '/swiftmailer/swiftmailer/lib/swift_required.php',
     );
@@ -30,6 +31,7 @@ class ComposerStaticInitff0a7fc48174f709c2f06c28783e7c9e
         array (
             'Firebase\\JWT\\' => 13,
             'FastRoute\\' => 10,
+            'Facebook\\' => 9,
         ),
         'E' => 
         array (
@@ -65,6 +67,10 @@ class ComposerStaticInitff0a7fc48174f709c2f06c28783e7c9e
         'FastRoute\\' => 
         array (
             0 => __DIR__ . '/..' . '/nikic/fast-route/src',
+        ),
+        'Facebook\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/facebook/graph-sdk/src/Facebook',
         ),
         'Egulias\\EmailValidator\\' => 
         array (

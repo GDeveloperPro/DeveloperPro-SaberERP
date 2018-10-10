@@ -1,10 +1,24 @@
 {
+  "name": "DeveloperPro",
+  "description": "Plataforma",
+  "type": "project",
+  "authors": [
+    {
+      "name": "Gilberto Guerrero Quinayas",
+      "email": "developerpro@hotmail.com"
+    },
+    {
+      "name": "Nelson Guerrero",
+      "email": "kskk691@gmail.com"
+    }
+  ],
   "require": {
     "slim/slim": "^3.11",
-    "firebase/php-jwt": "^5.0",
     "vlucas/phpdotenv": "^2.5",
-    "ircmaxell/password-compat": "^1.0",
+    "tecnickcom/tcpdf": "^6.2",
     "swiftmailer/swiftmailer": "^6.1",
-    "tecnickcom/tcpdf": "^6.2"
+    "ircmaxell/password-compat": "^1.0",
+    "firebase/php-jwt": "^5.0",
+    "facebook/graph-sdk": "^5.6"
   }
 }
