@@ -39,57 +39,69 @@
          *
          * @return object|string
          */
-        public function signIn($email, $password, $getHash = false)
+        public function signIn($usuario, $getHash = false)
         {
-            $helper = new Helpers();
-            $connection = new Connections();
-        
-            $sqlQueryUser = "SELECT se_user_id, se_user_email, se_user_password, se_user_code, se_user_last_connection, se_user_created_at, se_user_state_type, se_user_state, se_user_google_id, se_user_twitter_id, se_user_facebook_id, se_role_id_fk, se_group_id_fk,
-                                    se_profile_id, se_profile_identification, se_profile_name, se_profile_surname, se_profile_image, se_profile_birthdate, se_profile_address, se_profile_phone, se_profile_phone_cell, se_profile_state, co_city_id_fk, se_user_id_fk
-                                FROM security.se_users seu INNER JOIN security.se_profiles sep ON seu.se_user_id = sep.se_user_id_fk WHERE se_user_email = '$email';";
-            $resultQueryUser = $connection->complexQueryNonAssociative($sqlQueryUser);
-        
-            if ($resultQueryUser && $resultQueryUser > 0) {
-                $resultQueryUser = $helper->jsonEncodeDecode($resultQueryUser);
-            
-                $password = password_hash($password, PASSWORD_BCRYPT, array('cost' => 12));
-                $pv = password_verify($password, $resultQueryUser->se_user_password);
-            
-                if (!$pv) {
-                    $token = array(
-                        'iss' => getenv('APP_ISS'),
-                        'sub' => base64_encode($resultQueryUser->se_user_id),
-                        'subgmailid' => (isset($resultQueryUser->se_user_google_id)) ? base64_encode($resultQueryUser->se_user_google_id) : null,
-                        'subtwitterid' => (isset($resultQueryUser->se_user_twitter_id)) ? base64_encode($resultQueryUser->se_user_twitter_id) : null,
-                        'subfacebookid' => (isset($resultQueryUser->se_user_facebook_id)) ? base64_encode($resultQueryUser->se_user_facebook_id) : null,
-                        'email' => base64_encode($resultQueryUser->se_user_email),
-                        'name' => base64_encode($resultQueryUser->se_profile_name),
-                        'surname' => base64_encode($resultQueryUser->se_profile_surname),
-                        'image' => (isset($resultQueryUser->se_profile_image)) ? base64_encode($resultQueryUser->se_profile_image) : null,
-                        'iat' => time(),
-                        'nbf' => time(),
-                        'exp' => time() + (12 * 60 * 60)
-                    );
-                
-                    $jwt = JWT::encode($token, $this->key, 'HS512');
-                    $decoded = JWT::decode($jwt, $this->key, array('HS512'));
-                
-                    if ($getHash)
-                        return $jwt;
-                    else
-                        return $decoded;
-                } else {
-                    $data = array(
-                        'code' => '1005',
-                        'msg' => 'Password incorrect'
-                    );
-                }
-            } else {
-                $data = array(
-                    'code' => '1005',
-                    'msg' => 'User not exist'
-                );
+
+            $conexion = new Connections();
+            $fecha_ingreso = date('Y-m-d H:i');
+            $sql = "update security.se_users set se_user_last_connection = '$fecha_ingreso' where se_user_email= '$usuario[se_user_email]'";
+            $conexion->complexQueryNonAssociative($sql);
+            $sql ="select * from security.se_users se_use 
+                    join security.se_rols se_rol on se_use.se_role_id_fk_users = se_rol.se_rol_id
+                    join security.se_headers se_header on se_header.se_rol_id_fk_header=se_rol.se_rol_id
+                    where se_use.se_user_email like '$usuario[se_user_email]' order by se_header.se_header_priority asc;";
+            $r = $conexion->complexQueryAssociative($sql);
+            $permisos = array();
+            $rolDescripcion ='';
+            for ($i = 0; $i<count($r); $i++)
+            {
+                $id_cabezera=$r[$i]['se_header_id'];
+                $sql = "select se_header.*, se_menu.*,se_sm.* from security.se_users se_use 
+                        join security.se_rols se_rol on se_use.se_role_id_fk_users = se_rol.se_rol_id
+                        join security.se_headers se_header on se_header.se_rol_id_fk_header=se_rol.se_rol_id
+                        join security.se_sub_menus se_sm on se_header.se_header_id = se_sm.se_header_id_fk_seub_menu
+                        join security.se_menus se_menu on se_menu.se_menu_id=se_sm.se_menu_id_fk_sub_menu
+                        where se_header.se_header_id='$id_cabezera' and  se_use.se_user_email like '$usuario[se_user_email]' order by se_sm.se_sub_menu_priority asc;";
+                $rolDescripcion = $r[$i]['se_rol_description'];
+                $r2 = $conexion->complexQueryAssociative($sql);
+                array_push($permisos,[
+                    'id_cabezera'=>$id_cabezera,
+                    'descripcion_cabezera'=>$r[$i]['se_header_description'],
+                    'estado_cabezera'=>$r[$i]['se_header_state'],
+                    'subMenus'=>$r2
+                ]);
             }
+            $sql="select se_menu.* from security.se_users se_use 
+                        join security.se_rols se_rol on se_use.se_role_id_fk_users = se_rol.se_rol_id
+                        join security.se_headers se_header on se_header.se_rol_id_fk_header=se_rol.se_rol_id
+                        join security.se_sub_menus se_sm on se_header.se_header_id = se_sm.se_header_id_fk_seub_menu
+                        join security.se_menus se_menu on se_menu.se_menu_id=se_sm.se_menu_id_fk_sub_menu
+                        where se_use.se_user_email like '$usuario[se_user_email]';";
+            $r = $conexion->complexQueryAssociative($sql);
+            $token = array(
+                'sub' => $usuario['se_user_id'],
+                'documento' => $usuario['se_profile_identification'],
+                'nombre' => $usuario['se_profile_name'],
+                'apellido' => $usuario['se_profile_surname'],
+                'correo' => $usuario['se_user_email'],
+                'telefono' => $usuario['se_profile_phone'],
+                'direccion' => $usuario['se_profile_address'],
+                'rol' => $usuario['se_role_id_fk_users'],
+                'permisos'=>$r,
+                'menu'=>$permisos,
+                'fecha_creacion' => $usuario['se_user_created_at'],
+                'ultimo_ingreso'=>$fecha_ingreso,
+                'rol_descripcion' => $rolDescripcion,
+                'iat' => time(),
+                'exp' => time() + (7 * 24 * 60 * 60)
+            );
+            $jwt = JWT::encode($token, $this->key, 'HS512');
+            $decoded = JWT::decode($jwt, $this->key, array('HS512'));
+
+            if ($getHash)
+                return $decoded;
+            else
+                return $jwt;
         }
     
         /**

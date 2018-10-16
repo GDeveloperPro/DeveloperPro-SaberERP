@@ -40,15 +40,16 @@
          */
         public function checkCode($request)
         {
-            $code = (isset($request->code)) ? $request->code : null;
-            $msg = (isset($request->msg)) ? $request->msg : null;
-            $data = (isset($request->data)) ? $request->data : null;
+
+            $code = (isset($request['code'])) ? $request['code'] : null;
+            $msg = (isset($request['msg'])) ? $request['msg']: null;
+            $data = (isset($request['data'])) ? $request['data'] : null;
             $status = (isset($request->status)) ? $request->status : null;
-        
+
             switch ($code) {
                 case '1001':
                     $data = array(
-                        'status' => 'Success',
+                        'status' => 'success',
                         'code' => $code,
                         'msg' => $msg,
                         'data' => $data
@@ -94,13 +95,24 @@
                         'data' => $data
                     );
                     break;
-                default:
+                case '1007':
                     $data = array(
-                        'status' => 'Error',
+                        'status' => 'error',
                         'code' => $code,
-                        'msg' => 'No relation was found with the shipping code.',
+                        'msg' => $msg,
                         'data' => $data
                     );
+                    break;
+                case '1008':
+                    $data = array(
+                        'status' => 'error',
+                        'code' => $code,
+                        'msg' => 'Lo sentimos, vuelve a ingresar para ternimar el proceso actual',
+                        'data' => $data
+                    );
+                    break;
+                default:
+                    die('Lo sentimos el codigo ingresado no existe');
             }
         
             return json_encode($data);
