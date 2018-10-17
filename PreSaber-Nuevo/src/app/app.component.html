@@ -38,7 +38,7 @@
                     <span>{{objUsuario.nombre}} {{objUsuario.apellido}}</span>
                     <i class="ti-angle-down"></i>
                   </a>
-                  <ul class="show-notification profile-notification">
+                  <ul class="show-notification profile-notification" style="z-index: 10000000000000000000">
                     <li>
                       <a [routerLink]="['pefilUserAdmin']">
                         <i class="ti-user"></i> Profile
@@ -78,9 +78,9 @@
                     <li  class="pcoded-hasmenu" dropdown-icon="style1"
                         subitem-icon="style6" appAccordionLink group="dashboard">
                       <a    href="javascript:;" appAccordionToggle  (click)="navegarVista(sub)">
-                        <span class="pcoded-micon"><i class="{{sub.icono}}"></i></span>
-                        <span class="pcoded-mtext">{{sub.descripcion_menu}}</span>
-                        <span *ngIf="sub.estado_menu != 'ACTIVO'" class="pcoded-badge label label-danger">{{sub.estado_menu}}</span>
+                        <span class="pcoded-micon"><i class="{{sub.se_menu_icon}}"></i></span>
+                        <span class="pcoded-mtext">{{sub.se_menu_description}}</span>
+                        <span *ngIf="sub.se_menu_state != 'ACTIVO'" class="pcoded-badge label label-danger">{{sub.se_menu_state}}</span>
                       </a>
                     </li>
                   </ul>
