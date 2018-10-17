@@ -265,20 +265,51 @@ $app->group('/api-security/', function () {
                         $connection = new \Service\Connections();
                         $parametrosJsonUser = json_decode($jsonUser);
                         $parametrosJsonProfile = json_decode($jsonProfile);
-                        $se_user_email = (isset($parametrosJsonUser->se_user_email)) ? $parametrosJsonUser->se_user_email : null;
+                        $se_user_email = strtolower((isset($parametrosJsonUser->se_user_email)) ? $parametrosJsonUser->se_user_email : null);
                         $se_user_password = (isset($parametrosJsonUser->se_user_password)) ? $parametrosJsonUser->se_user_password : null;
-                        $se_user_state = (isset($parametrosJsonUser->se_user_state)) ? $parametrosJsonUser->se_user_state : null;
+                        $se_user_state = strtolower((isset($parametrosJsonUser->se_user_state)) ? $parametrosJsonUser->se_user_state : null);
 
                         $se_profile_identification = (isset($parametrosJsonProfile->se_profile_identification)) ? $parametrosJsonProfile->se_profile_identification : null;
-                        $se_profile_name = (isset($parametrosJsonProfile->se_profile_name)) ? $parametrosJsonProfile->se_profile_name : null;
-                        $se_profile_surname = (isset($parametrosJsonProfile->se_profile_surname)) ? $parametrosJsonProfile->se_profile_surname : null;
+                        $se_profile_name = strtolower((isset($parametrosJsonProfile->se_profile_name)) ? $parametrosJsonProfile->se_profile_name : null);
+                        $se_profile_surname = strtolower((isset($parametrosJsonProfile->se_profile_surname)) ? $parametrosJsonProfile->se_profile_surname : null);
                         $se_profile_phone = (isset($parametrosJsonProfile->se_profile_phone)) ? $parametrosJsonProfile->se_profile_phone : null;
                         $se_profile_state = (isset($parametrosJsonProfile->se_profile_state)) ? $parametrosJsonProfile->se_profile_state : null;
-                        if ($helper->isValidEmail($se_user_email)){
+                        if ($helper->isValidEmail($se_user_email)) {
+                            $se_user_email = strtolower($se_user_email);
+                            $sql = "select * from security.se_users se_use where se_use.se_user_email like '$se_user_email'";
+                            $r = $connection->complexQuery($sql);
+                            if (pg_num_rows($r) == 0) {
+                                $sql = "select * from security.se_profiles se_prof where se_prof.se_profile_identification like '$se_profile_identification'";
+                                $r = $connection->complexQuery($sql);
+                                if (pg_num_rows($r) == 0) {
+                                    $activatedCode = time() . rand(0, 1000);
+                                    $password = time();
+                                    $passwordHas = hash('SHA256', $password);
 
-                        }else
-                        {
+                                    //Envio de correo de activacion
+                                    $sql = "INSERT INTO security.se_users(
+                                        se_user_email, se_user_password, se_user_code, 
+                                        se_user_created_at, se_user_state, se_role_id_fk_users, se_group_id_fk_users, se_user_active)
+                                        VALUES ('$se_user_email', '$passwordHas', '$activatedCode',  '$fecha_ingreso', 'INACTIVO',  ?, ?, ?);";
 
+
+                                } else {
+                                    $data = [
+                                        'code' => '1007',
+                                        'msg' => 'Lo sentimos este documento de identidad ya se encuentra registrado'
+                                    ];
+                                }
+                            } else {
+                                $data = [
+                                    'code' => '1007',
+                                    'msg' => 'Lo sentimos este correo ya se encuentra registrado'
+                                ];
+                            }
+                        } else {
+                            $data = [
+                                'code' => '1007',
+                                'msg' => 'Lo sentimos este correo no existe'
+                            ];
                         }
                         $r = $connection->simpleQuery($sql);
                         $data = [
